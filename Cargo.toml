@@ -1,0 +1,11 @@
+[package]
+name = "edit_config"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dialoguer = "0.10.2"
+console = "0.15.1"
+serde = { version = "1.0.104", features = ["derive"] }
+serde_json = "1.0.48"
+calamine = "0.18.0"
