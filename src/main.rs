@@ -120,6 +120,7 @@ impl Configuration {
         let new_value: String = Input::new()
             .with_prompt("Value")
             .with_initial_text(value)
+            .allow_empty(true)
             .interact_text()
             .unwrap();
 
@@ -240,8 +241,15 @@ impl Configuration {
                     self.delete_mode = true
                 } else if index == last_index {
                     let config = self.current_config_value().as_array_mut().unwrap();
+                    let empty = config.is_empty();
                     config.push(default_value.clone());
-                    self.last_selected_index = last_index + 1;
+                    let len = config.len();
+                    self.last_selected_index = if empty {
+                        last_index + 2
+                    } else {
+                        last_index + 1
+                    };
+                    self.path_push(((len - 1).to_string(), len - 1))
                 } else {
                     self.path_push((index.to_string(), index));
                 }
