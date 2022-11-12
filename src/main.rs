@@ -2,7 +2,7 @@ mod plugin;
 mod util;
 
 use crate::Scheme::{Int, List, Object, Str};
-use std::io::stdin;
+use std::io::{stdin, stdout, Write};
 use console::Term;
 use dialoguer::{theme::ColorfulTheme, Input, Select};
 use serde_json::Value;
@@ -112,11 +112,17 @@ impl Configuration {
             .interact_text()
             .unwrap();
         #[cfg(target_os = "windows")]
-        let new_value = {
-            print!("Value: {}", value);
+        let new_value: i64 = {
+            println!("Current Value: {}", value);
+            println!("Leave empty for no change");
+            print!("Value: ");
+            stdout().flush().unwrap();
             let mut s = String::new();
             stdin().read_line(&mut s).unwrap();
-            s.parse().unwrap()
+            match s.trim().parse::<i64>() {
+                Ok(v) => v,
+                Err(msg) => value
+            }
         };
 
         *self.current_config_value() = Value::Number(new_value.into());
@@ -126,12 +132,28 @@ impl Configuration {
     fn configure_str(&mut self) {
         let value = self.current_config_value().as_str().unwrap();
 
+        #[cfg(target_os = "linux")]
         let new_value: String = Input::new()
             .with_prompt("Value")
             .with_initial_text(value)
             .allow_empty(true)
             .interact_text()
             .unwrap();
+        #[cfg(target_os = "windows")]
+        let new_value = {
+            println!("Current Value: {}", value);
+            println!("Leave empty for no change");
+            print!("Value: ");
+            stdout().flush().unwrap();
+            let mut s = String::new();
+            stdin().read_line(&mut s).unwrap();
+            s = s.trim().to_string();
+            if s == "" {
+                value.to_string()
+            } else {
+                s
+            }
+        };
 
         *self.current_config_value() = Value::String(new_value.trim().to_string());
         self.path_pop()
