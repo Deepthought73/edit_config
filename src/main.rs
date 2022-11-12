@@ -2,6 +2,7 @@ mod plugin;
 mod util;
 
 use crate::Scheme::{Int, List, Object, Str};
+use std::io::stdin;
 use console::Term;
 use dialoguer::{theme::ColorfulTheme, Input, Select};
 use serde_json::Value;
@@ -104,11 +105,19 @@ impl Configuration {
     fn configure_int(&mut self) {
         let value = self.current_config_value().as_i64().unwrap();
 
-        let new_value: i64 = Input::new()
+        #[cfg(target_os = "linux")]
+            let new_value: i64 = Input::new()
             .with_prompt("Value")
             .with_initial_text(value.to_string())
             .interact_text()
             .unwrap();
+        #[cfg(target_os = "windows")]
+        let new_value = {
+            print!("Value: {}", value);
+            let mut s = String::new();
+            stdin().read_line(&mut s).unwrap();
+            s.parse().unwrap()
+        };
 
         *self.current_config_value() = Value::Number(new_value.into());
         self.path_pop()
